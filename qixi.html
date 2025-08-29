@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>七夕快乐</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: linear-gradient(135deg, #ffdde1, #ee9ca7);
+      font-family: "Microsoft Yahei", sans-serif;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      color: #d6336c;
+      margin-bottom: 30px;
+      animation: fadeIn 2s ease-in-out;
+      text-align: center;
+    }
+
+    .map {
+      position: relative;
+      width: 500px;
+      height: 200px;
+      background: #fff8f8;
+      border-radius: 20px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 40px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+
+    .point {
+      width: 20px;
+      height: 20px;
+      background: #d6336c;
+      border-radius: 50%;
+      position: relative;
+    }
+
+    .point::after {
+      content: attr(data-name);
+      position: absolute;
+      top: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 14px;
+      color: #333;
+    }
+
+    .airplane {
+      position: absolute;
+      top: 60px;
+      left: 0;
+      font-size: 24px;
+      opacity: 0;
+      transform-origin: center center;
+      cursor: pointer;
+    }
+
+    .hearts {
+      position: absolute;
+      top: 20px;
+      right: 40px;
+      font-size: 24px;
+      display: none;
+    }
+
+    .hearts span {
+      position: absolute;
+      color: #ff4d6d;
+      animation: float 2s ease-in-out infinite;
+      opacity: 0.8;
+    }
+
+    .hearts span:nth-child(1) {
+      left: -10px;
+      animation-delay: 0s;
+    }
+
+    .hearts span:nth-child(2) {
+      left: 10px;
+      animation-delay: 0.5s;
+    }
+
+    .hearts span:nth-child(3) {
+      left: 30px;
+      animation-delay: 1s;
+    }
+
+    #meetBtn {
+      margin-top: 10px;
+      padding: 10px 25px;
+      background: #d6336c;
+      color: #fff;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 16px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      transition: transform 0.2s;
+    }
+
+    #meetBtn:hover {
+      transform: scale(1.05);
+    }
+
+    #dateText {
+      margin-top: 20px;
+      font-size: 20px;
+      color: #333;
+      display: none;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    #message {
+      margin-top: 10px;
+      font-size: 18px;
+      color: #d6336c;
+      white-space: pre-wrap;
+    }
+
+    /* 飞机尾迹爱心动画 */
+    @keyframes float {
+      0% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+      }
+
+      100% {
+        transform: translateY(-50px) scale(1.5);
+        opacity: 0;
+      }
+    }
+
+    @keyframes floatTrail {
+      0% {
+        transform: translate(0, 0) scale(0.8);
+        opacity: 1;
+      }
+
+      100% {
+        transform: translate(0, -30px) scale(1.2);
+        opacity: 0;
+      }
+    }
+
+    /* 花瓣样式 */
+    .flower {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      background: radial-gradient(circle, #ff4d6d 0%, #ffc0cb 100%);
+      border-radius: 50%;
+      opacity: 0.8;
+      pointer-events: none;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <h1>七夕快乐，张晏龄 ❤️</h1>
+
+  <div class="map" id="map">
+    <div class="point" data-name="江苏" id="jiangsu"></div>
+    <div class="airplane" id="airplane">✈️</div>
+    <div class="point" data-name="贵州" id="guizhou"></div>
+    <div class="hearts" id="hearts">
+      <span>❤️</span>
+      <span>💖</span>
+      <span>💘</span>
+    </div>
+  </div>
+
+  <button id="meetBtn">见面时间</button>
+
+  <div id="dateText">
+    10月（日期暂定）<br>
+    <div id="message">这段距离，终将被我们跨越，希望不久后就能见到你 💌</div>
+  </div>
+
+  <script>
+    const meetBtn = document.getElementById('meetBtn');
+    const airplane = document.getElementById('airplane');
+    const dateText = document.getElementById('dateText');
+    const hearts = document.getElementById('hearts');
+    const map = document.getElementById('map');
+
+    let hasStarted = false; // 防止重复点击
+
+    meetBtn.addEventListener('click', () => {
+      if (hasStarted) return;
+      hasStarted = true;
+
+      airplane.style.opacity = 1;
+      let position = 0;
+      const distance = 440;
+      const amplitude = 20;
+      let lastY = 60;
+
+      const interval = setInterval(() => {
+        if (position >= distance) {
+          clearInterval(interval);
+          dateText.style.display = 'block';
+          hearts.style.display = 'block';
+          return;
+        }
+        position += 5;
+        const y = 60 + Math.sin(position / 50) * amplitude;
+        const angle = Math.atan((y - lastY) / 5) * 180 / Math.PI;
+        airplane.style.transform = `translate(${position}px, ${y}px) rotate(${angle}deg)`;
+        lastY = y;
+
+        // 飞机尾迹爱心
+        const trailHeart = document.createElement('span');
+        trailHeart.textContent = '💖';
+        trailHeart.style.position = 'absolute';
+        trailHeart.style.left = position + 'px';
+        trailHeart.style.top = y + 'px';
+        trailHeart.style.animation = 'floatTrail 2s forwards';
+        map.appendChild(trailHeart);
+
+        // 飘向屏幕顶部
+        setTimeout(() => {
+          trailHeart.style.transition = 'transform 1s ease-out, opacity 1s';
+          trailHeart.style.transform = `translateY(-80px)`;
+          trailHeart.style.opacity = 0;
+        }, 500);
+
+        setTimeout(() => { trailHeart.remove(); }, 2000);
+      }, 20);
+    });
+
+    // 点击飞机，生成弹出爱心
+    airplane.addEventListener('click', () => {
+      const clickHeart = document.createElement('span');
+      clickHeart.textContent = '💌';
+      clickHeart.style.position = 'absolute';
+      clickHeart.style.left = parseInt(airplane.style.left) + 10 + 'px';
+      clickHeart.style.top = parseInt(airplane.style.top) + 0 + 'px';
+      clickHeart.style.fontSize = '20px';
+      clickHeart.style.transition = 'transform 1s ease-out, opacity 1s';
+      map.appendChild(clickHeart);
+      setTimeout(() => {
+        clickHeart.style.transform = 'translateY(-100px) scale(1.5)';
+        clickHeart.style.opacity = 0;
+      }, 50);
+      setTimeout(() => clickHeart.remove(), 1000);
+    });
+
+    // 花瓣效果
+    function createPetal () {
+      const petal = document.createElement('div');
+      petal.className = 'flower';
+      petal.style.left = Math.random() * window.innerWidth + 'px';
+      petal.style.top = '-10px';
+      petal.style.opacity = Math.random() * 0.5 + 0.5;
+      const size = Math.random() * 10 + 8;
+      petal.style.width = size + 'px';
+      petal.style.height = size + 'px';
+      document.body.appendChild(petal);
+
+      let top = -10;
+      const speedX = Math.random() * 2 - 1;
+      const speedY = Math.random() * 2 + 1;
+      const interval = setInterval(() => {
+        top += speedY;
+        petal.style.top = top + 'px';
+        petal.style.left = parseFloat(petal.style.left) + speedX + 'px';
+        if (top > window.innerHeight) {
+          clearInterval(interval);
+          petal.remove();
+        }
+      }, 20);
+    }
+    setInterval(createPetal, 300);
+
+  </script>
+</body>
+
+</html>
